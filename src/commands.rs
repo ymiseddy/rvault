@@ -5,12 +5,14 @@ use crate::gpg_helpers;
 use crate::ui;
 use json;
 
+
 #[derive(Debug)]
 pub struct VaultConfig {
     pub vault: PathBuf,
     pub ask_password: bool,
     pub key_id: String,
 }
+
 
 pub fn list(config: &VaultConfig) {
     let available_secrets = gpg_helpers::list_passwords(&config.vault);
@@ -19,10 +21,12 @@ pub fn list(config: &VaultConfig) {
     }
 }
 
+
 pub fn remove(config: &VaultConfig, name: &Option<String>) {
     let path = get_secret_path(name, config).expect("Failed to get secret path.");
     std::fs::remove_file(path).expect("Failed to remove file."); 
 }
+
 
 pub fn read_id(config: &VaultConfig) -> Result<String, std::io::Error> {
     // Ensure vault exists and is a directory
@@ -51,9 +55,12 @@ pub fn read_id(config: &VaultConfig) -> Result<String, std::io::Error> {
     }
 }
 
-pub fn otp(config: &VaultConfig, filename: &Option<PathBuf>) {
 
+pub fn otp(_config: &VaultConfig, _filename: &Option<PathBuf>) {
+    // Need to finish this.
+    todo!();
 }
+
 
 pub fn init(config: &VaultConfig) {
     let vault = &config.vault;
@@ -88,11 +95,13 @@ pub fn add(config: &VaultConfig, name: &Option<String>) {
     gpg_helpers::write_password(&path, &pw).expect("Failed to write password.");
 }
 
+
 pub fn show(config: &VaultConfig, name: &Option<String>) {
 
     let pw = extract(name, config).expect("Failed to extract password.");
     println!("{}", pw);
 }
+
 
 pub fn copy(config: &VaultConfig, name: &Option<String>) {
     let pw = extract(name, config).expect("Failed to extract password.");
@@ -112,6 +121,7 @@ fn extract(name: &Option<String>, config: &VaultConfig) -> Result<String, Inquir
 
     Ok(pw)
 }
+
 
 fn get_secret_path(name: &Option<String>, config: &VaultConfig) -> Result<PathBuf, InquireError> {
     let pw_path: PathBuf;

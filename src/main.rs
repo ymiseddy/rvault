@@ -95,6 +95,7 @@ fn main() {
     
     match id {
         Ok(id) => {
+            // TODO: This feels wrong. 
             config = commands::VaultConfig {
                 vault,
                 ask_password,
@@ -103,7 +104,9 @@ fn main() {
         },
         Err(_) => 
             {
-                // Error if command is not Init
+                // Vault is not initialized -- only valid command is Init
+                
+                // TODO: This whole block feels clunky - Need to figure out a better way.
                 if let Some(command) = &args.command {
                     match command {
                         Commands::Init {} => {},
