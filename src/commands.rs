@@ -1,11 +1,10 @@
+
 use inquire::InquireError;
 use totp_rs::TOTP;
 use std::path::PathBuf;
 use std::io::Read;
 use crate::gpg_helpers;
 use crate::ui;
-use json;
-use atty;
 
 
 #[derive(Debug)]
@@ -70,9 +69,8 @@ fn read_otpauth() -> Result<String, InquireError> {
         let mut handle = stdin.lock();
         handle.read_to_end(&mut otpauth)?;
 
-        let strauth;
-        match String::from_utf8(otpauth) {
-            Ok(otpauth) => strauth = otpauth,
+        let strauth = match String::from_utf8(otpauth) {
+            Ok(otpauth) => otpauth,
             Err(_) => {
                 // TODO: Hacky way to return an error here.
                 return Err(InquireError::from(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse otpauth.")));

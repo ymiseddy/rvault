@@ -2,8 +2,6 @@ use std::{process::{Command, Stdio}, io, path::PathBuf};
 use std::fmt::Display;
 use std::io::Write;
 use walkdir::WalkDir;
-use dirs;
-
 
 #[derive(Debug, Clone)]
 pub struct KeyIdName {
@@ -70,12 +68,12 @@ pub fn get_secret_keys() -> Result<Vec<KeyIdName>, io::Error> {
             match initial {
                 true => initial = false,
                 false => {
-                    keys.push(current_key.clone());
+                    keys.push(current_key.to_owned());
                     current_key.id.clear();
                     current_key.name.clear();
                 }
             }
-            let parts = line.split(":").collect::<Vec<&str>>();
+            let parts = line.split(':').collect::<Vec<&str>>();
             let id = match parts.get(4) {
                 Some(id) => id,
                 None => return
@@ -84,12 +82,12 @@ pub fn get_secret_keys() -> Result<Vec<KeyIdName>, io::Error> {
         }
 
         if line.starts_with("uid") {
-            let parts = line.split(":").collect::<Vec<&str>>();
+            let parts = line.split(':').collect::<Vec<&str>>();
             let name = match parts.get(9) {
                 Some(name) => name,
                 None => return
             };
-            if current_key.name.len() > 0 {
+            if !current_key.name.is_empty() {
                 current_key.name.push_str(", ");
             }
             current_key.name.push_str(name);
@@ -98,7 +96,7 @@ pub fn get_secret_keys() -> Result<Vec<KeyIdName>, io::Error> {
 
     // Push the last key
     if !initial {
-        keys.push(current_key.clone());
+        keys.push(current_key);
     } 
 
     return Ok(keys);
@@ -123,8 +121,8 @@ pub fn list_passwords(vault_dir: &PathBuf) -> Vec<String> {
                 if filename.ends_with(".gpg") {
                     let key = filename
                         .trim_start_matches(vault_dir.to_str().unwrap())
-                        .trim_start_matches("/")
-                        .trim_start_matches("\\")
+                        .trim_start_matches('/')
+                        .trim_start_matches('\\')
                         .trim_end_matches(".gpg");
                     keys.push(key.to_string());
                 }
@@ -148,7 +146,6 @@ pub fn write_password(path: &PathBuf, password: &str) -> Result<(), io::Error> {
 
     let stdin = process.stdin.as_mut().unwrap();
     stdin.write_all(password.as_bytes())?;
-    drop(stdin);
     let output = process.wait_with_output()?;
     
     if output.status.code().unwrap() != 0 {

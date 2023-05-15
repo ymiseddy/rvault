@@ -89,7 +89,7 @@ struct FilenameValidator{}
 impl StringValidator for FilenameValidator {
     fn validate(&self, input: &str) -> Result<Validation, CustomUserError> {
         let re = Regex::new(r"^[a-zA-Z0-9_\- ]+$").unwrap();
-        if input.contains("/") {
+        if input.contains('/') {
             return Ok(Validation::Invalid(ErrorMessage::Custom("Filename cannot contain slashes.".to_string())));
         }
         if !re.is_match(input) {

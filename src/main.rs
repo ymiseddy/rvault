@@ -1,6 +1,7 @@
+#![allow(clippy::needless_return)]
+
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
-
 mod gpg_helpers;
 mod ui;
 mod commands;
