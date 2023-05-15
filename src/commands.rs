@@ -80,13 +80,31 @@ fn read_otpauth() -> Result<String, InquireError> {
     }
 }
 
+fn decode_image_file(image_file: &str) -> String {
+    let img = image::open(image_file).expect("Failed to open image.");
+    let decoder = bardecoder::default_decoder();
+    let results = decoder.decode(&img);
+
+    if results.is_empty() {
+        panic!("Failed to decode image.");
+    }
+
+    return results.into_iter().next()
+                        .expect("Failed to decode image")
+                        .expect("Failed to decode image");
+}
 
 pub fn otp(config: &VaultConfig, share_token: &Option<String>) {
 
-    let otpauth: String = match share_token {
+    let mut otpauth: String = match share_token {
         Some(share_token) => share_token.to_string(),
         None => read_otpauth().expect("Failed to read otpauth."),
     };
+
+    if otpauth.ends_with(".png") {
+        // Decode as image.
+        otpauth = decode_image_file(&otpauth);
+    }
 
     let totp = TOTP::from_url_unchecked(&otpauth).expect("Failed to parse otpauth.");
     let issuer = totp.issuer.unwrap();

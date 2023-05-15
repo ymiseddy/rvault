@@ -67,7 +67,7 @@ enum Commands {
     /// Add a one-time password shared token to the vault.
     #[clap(name = "otp")]
     Otp {
-        /// specify a UUL otpauth://... or be prompted from stdin.
+        /// specify a UUL otpauth:// or a path to a .png file of a QR code.
         share_token: Option<String>,
     },
 
