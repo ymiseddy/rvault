@@ -1,0 +1,20 @@
+[package]
+name = "rvault"
+description = "A simple password manager written in Rust using gpg for backing."
+author = "Shawn Eddy <ymiseddy@gmail.com>"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+arboard = "3.2.0"
+clap = { version = "4.2.7", features = ["derive"] }
+crossterm = "0.26.1"
+inquire = "0.6.2"
+dirs = "5.0.1"
+walkdir = "2.3.3"
+totp-rs = {version = "5.0.1", features = ["otpauth"]}
+regex = "1.8.1"
+json = "0.12.4"
+
