@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-
 use clap::{Parser, Subcommand};
 
 mod gpg_helpers;
@@ -19,10 +18,10 @@ struct Cli {
     #[arg(short, long)]
     ask_password: bool,
 
-
     #[command(subcommand)]
     command: Option<Commands>,
 }
+
 
 #[derive(Subcommand)]
 enum Commands {
@@ -67,9 +66,8 @@ enum Commands {
     /// Add a one-time password shared token to the vault.
     #[clap(name = "otp")]
     Otp {
-        /// Can be an image (png) containing the QR code, or a file containing the shared secret.
-        /// If not present, the shared secret will be read from stdin.
-        filename: Option<PathBuf>,
+        /// specify a UUL otpauth://... or be prompted from stdin.
+        share_token: Option<String>,
     },
 
 }
@@ -137,8 +135,8 @@ fn main() {
             Commands::Show { name } => {
                 commands::show(&config, name);
             },
-            Commands::Otp { filename } => {
-                commands::otp(&config, filename);
+            Commands::Otp { share_token } => {
+                commands::otp(&config, share_token);
             },
             Commands::Init {} => {
                 commands::init(&config);

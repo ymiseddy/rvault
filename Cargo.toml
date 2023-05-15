@@ -1,7 +1,6 @@
 [package]
 name = "rvault"
 description = "A simple password manager written in Rust using gpg for backing."
-author = "Shawn Eddy <ymiseddy@gmail.com>"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,4 +16,5 @@ walkdir = "2.3.3"
 totp-rs = {version = "5.0.1", features = ["otpauth"]}
 regex = "1.8.1"
 json = "0.12.4"
+atty = "0.2.14"
 

@@ -17,6 +17,12 @@ pub fn prompt_for_password() -> Result<String, InquireError> {
     return Ok(password);
 }
 
+pub fn prompt_for_otpauth() -> Result<String, InquireError> {
+    let otpauth = Text::new("otpauth: ")
+        .prompt()?;
+    return Ok(otpauth);
+}
+
 pub fn maybe_prompt_for_password(ask_password: bool) -> Option<String> {
     if ask_password {
         return Some(Password::new("Password: ")

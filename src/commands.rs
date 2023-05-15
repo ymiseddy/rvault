@@ -1,9 +1,11 @@
 use inquire::InquireError;
 use totp_rs::TOTP;
 use std::path::PathBuf;
+use std::io::Read;
 use crate::gpg_helpers;
 use crate::ui;
 use json;
+use atty;
 
 
 #[derive(Debug)]
@@ -56,9 +58,52 @@ pub fn read_id(config: &VaultConfig) -> Result<String, std::io::Error> {
 }
 
 
-pub fn otp(_config: &VaultConfig, _filename: &Option<PathBuf>) {
-    // Need to finish this.
-    todo!();
+fn read_otpauth() -> Result<String, InquireError> {
+    if atty::is(atty::Stream::Stdin) {
+        // Prompt for otpauth
+        let otpauth = ui::prompt_for_otpauth()?;
+        return Ok(otpauth);
+    } else {
+        // Read from stdin
+        let mut otpauth = Vec::new();
+        let stdin = std::io::stdin();
+        let mut handle = stdin.lock();
+        handle.read_to_end(&mut otpauth)?;
+
+        let strauth;
+        match String::from_utf8(otpauth) {
+            Ok(otpauth) => strauth = otpauth,
+            Err(_) => {
+                // TODO: Hacky way to return an error here.
+                return Err(InquireError::from(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse otpauth.")));
+            }
+        };
+        return Ok(strauth);
+    }
+}
+
+
+pub fn otp(config: &VaultConfig, share_token: &Option<String>) {
+
+    let otpauth: String = match share_token {
+        Some(share_token) => share_token.to_string(),
+        None => read_otpauth().expect("Failed to read otpauth."),
+    };
+
+    let totp = TOTP::from_url_unchecked(&otpauth).expect("Failed to parse otpauth.");
+    let issuer = totp.issuer.unwrap();
+    let account = totp.account_name;
+    let filename = format!("{account}.gpg");
+
+    let path = config.vault.join("otp").join(issuer);
+
+    let filepath = path.join(filename);
+
+    if !path.exists() {
+        std::fs::create_dir_all(&path).expect("Failed to create OTP directory.");
+    }
+
+    gpg_helpers::write_password(&filepath, &otpauth).expect("Failed to write password.");
 }
 
 
