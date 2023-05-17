@@ -1,23 +1,24 @@
 use arboard::Clipboard;
-use inquire::{error::InquireError, Select, Password, Text, validator::{StringValidator, Validation, ErrorMessage}, CustomUserError};
+use inquire::{Select, Password, Text, validator::{StringValidator, Validation, ErrorMessage}, CustomUserError};
 use crossterm::event::{poll, read, Event, KeyEvent};
 use std::time::{Duration, Instant};
 use regex::Regex;
 use crate::gpg_helpers::KeyIdName;
+use crate::errors::VaultError;
 
-pub fn pick_password(password_list: Vec<String>) -> Result<String, InquireError> {
+pub fn pick_password(password_list: Vec<String>) -> Result<String, VaultError> {
     let key = Select::new("Pick a key", password_list)
         .prompt()?;
     return Ok(key);
 }
 
-pub fn prompt_for_password() -> Result<String, InquireError> {
+pub fn prompt_for_password() -> Result<String, VaultError> {
     let password = Password::new("Password: ")
         .prompt()?;
     return Ok(password);
 }
 
-pub fn prompt_for_otpauth() -> Result<String, InquireError> {
+pub fn prompt_for_otpauth() -> Result<String, VaultError> {
     let otpauth = Text::new("otpauth: ")
         .prompt()?;
     return Ok(otpauth);
@@ -34,7 +35,7 @@ pub fn maybe_prompt_for_password(ask_password: bool) -> Option<String> {
     }
 }
 
-pub fn prompt_for_filename() -> Result<String, InquireError> {
+pub fn prompt_for_filename() -> Result<String, VaultError> {
     let filename = Text::new("Filename: ")
         .with_validator(FilenameValidator{})
         .prompt()?;
@@ -43,9 +44,20 @@ pub fn prompt_for_filename() -> Result<String, InquireError> {
 
 
 pub fn copy_to_clipboard_and_wait(text: &str) {
-    let mut clipboard = Clipboard::new().unwrap();
-    println!("Copied to the clipboard.");
-    clipboard.set_text(text).unwrap();
+    let mut clipboard = match Clipboard::new() {
+        Ok(clipboard) => clipboard,
+        Err(e) => {
+            eprintln!("Error: {:?}", e);
+            return;
+        }
+    };
+    match clipboard.set_text(text) {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("Error: {:?}", e);
+            return;
+        }
+    }
 
     let start_time = Instant::now();
     let ten_secs = Duration::from_secs(10);
@@ -78,9 +90,8 @@ pub fn copy_to_clipboard_and_wait(text: &str) {
             }
         }
     }
-    println!("Done.");
     clipboard.clear().unwrap();
-
+    println!("Done.");
 }
 
 #[derive(Clone)]
@@ -99,7 +110,7 @@ impl StringValidator for FilenameValidator {
     }
 }
 
-pub fn pick_key(keys: Vec<KeyIdName>) -> Result<String, InquireError> {
+pub fn pick_key(keys: Vec<KeyIdName>) -> Result<String, VaultError> {
     let key = Select::new("Pick a key", keys)
         .prompt()?;
     return Ok(key.id);

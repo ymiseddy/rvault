@@ -1169,6 +1169,7 @@ dependencies = [
  "inquire",
  "json",
  "regex",
+ "thiserror",
  "totp-rs",
  "walkdir",
 ]

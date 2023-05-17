@@ -1,7 +1,8 @@
-use std::{process::{Command, Stdio}, io, path::PathBuf};
+use std::{process::{Command, Stdio}, path::PathBuf};
 use std::fmt::Display;
 use std::io::Write;
 use walkdir::WalkDir;
+use crate::errors::VaultError;
 
 #[derive(Debug, Clone)]
 pub struct KeyIdName {
@@ -15,7 +16,7 @@ impl Display for KeyIdName {
     }
 }
 
-pub fn decrypt_file(filename: &PathBuf, password: Option<String>) -> Result<String, io::Error> {
+pub fn decrypt_file(filename: &PathBuf, password: Option<String>) -> Result<String, VaultError> {
     let mut cmd = Command::new("gpg");
 
      cmd.arg("--decrypt");
@@ -32,20 +33,19 @@ pub fn decrypt_file(filename: &PathBuf, password: Option<String>) -> Result<Stri
     let output = match res {
         Ok(output) => output,
         Err(err) => {
-            eprintln!("Error: {}", err);
-            return Err(err);
+            return Err(VaultError::IoError(err));
         },
     };
     if output.status.code().unwrap() != 0 {
         eprintln!("Error: {}", String::from_utf8(output.stderr).unwrap());
-        return Err(io::Error::new(io::ErrorKind::Other, "Failed to decrypt file."));
+        return Err(VaultError::DecryptionError("Failed to decrypt file."));
     }
 
     let message = String::from_utf8(output.stdout).unwrap();
     return Ok(message);
 }
 
-pub fn get_secret_keys() -> Result<Vec<KeyIdName>, io::Error> {
+pub fn get_secret_keys() -> Result<Vec<KeyIdName>, VaultError> {
     let output = Command::new("gpg")
         .arg("--list-secret-keys")
         .arg("--with-colons")
@@ -133,7 +133,7 @@ pub fn list_passwords(vault_dir: &PathBuf) -> Vec<String> {
     return keys;
 }
 
-pub fn write_password(path: &PathBuf, password: &str) -> Result<(), io::Error> {
+pub fn write_password(path: &PathBuf, password: &str) -> Result<(), VaultError> {
     let recipient="ymiseddy@gmail.com";
     let mut process = Command::new("gpg")
         .arg("--batch")
@@ -150,7 +150,7 @@ pub fn write_password(path: &PathBuf, password: &str) -> Result<(), io::Error> {
     
     if output.status.code().unwrap() != 0 {
         eprintln!("Error: {}", String::from_utf8(output.stderr).unwrap());
-        return Err(io::Error::new(io::ErrorKind::Other, "Failed to encrypt file."));
+        return Err(VaultError::DecryptionError("Failed to encrypt file."));
     }
 
     let mut file = std::fs::File::create(path)?;

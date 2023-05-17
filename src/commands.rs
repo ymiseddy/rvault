@@ -1,10 +1,9 @@
-
-use inquire::InquireError;
 use totp_rs::TOTP;
 use std::path::PathBuf;
 use std::io::Read;
 use crate::gpg_helpers;
 use crate::ui;
+use crate::errors::VaultError;
 
 
 #[derive(Debug)]
@@ -29,13 +28,13 @@ pub fn remove(config: &VaultConfig, name: &Option<String>) {
 }
 
 
-pub fn read_id(config: &VaultConfig) -> Result<String, std::io::Error> {
+pub fn read_id(config: &VaultConfig) -> Result<String, VaultError> {
     // Ensure vault exists and is a directory
     if !config.vault.exists() {
-        return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Vault is not initialized."));
+        return Err(VaultError::InitializationError("Vault is not initialized"));
     }
     if !config.vault.is_dir() {
-        return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Vault is not a directory."));
+        return Err(VaultError::InitializationError("Vault is not a directory."));
     }
 
     // Read ID file
@@ -46,18 +45,18 @@ pub fn read_id(config: &VaultConfig) -> Result<String, std::io::Error> {
     // If the result is ok
     if let Ok(result) = result {
         if result["id"].is_null() {  
-            return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Vault is not initialized."));
+            return Err(VaultError::InitializationError("Vault is not initialized."));
         }
 
         let id = result["id"].to_string();
         return Ok(id);
     } else {
-        return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse ID file."));
+        return Err(VaultError::InitializationError("Failed to parse ID file."));
     }
 }
 
 
-fn read_otpauth() -> Result<String, InquireError> {
+fn read_otpauth() -> Result<String, VaultError> {
     if atty::is(atty::Stream::Stdin) {
         // Prompt for otpauth
         let otpauth = ui::prompt_for_otpauth()?;
@@ -73,7 +72,7 @@ fn read_otpauth() -> Result<String, InquireError> {
             Ok(otpauth) => otpauth,
             Err(_) => {
                 // TODO: Hacky way to return an error here.
-                return Err(InquireError::from(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse otpauth.")));
+                return Err(VaultError::Other("Failed to parse otpauth."));
             }
         };
         return Ok(strauth);
@@ -170,10 +169,10 @@ pub fn copy(config: &VaultConfig, name: &Option<String>) {
 }
 
 
-fn extract(name: &Option<String>, config: &VaultConfig) -> Result<String, InquireError> {
+fn extract(name: &Option<String>, config: &VaultConfig) -> Result<String, VaultError> {
     let pw_path = get_secret_path(name, config)?;
     let gpg_password = ui::maybe_prompt_for_password(config.ask_password);
-    let mut pw = gpg_helpers::decrypt_file(&pw_path, gpg_password).expect("Failed to decrypt password.");
+    let mut pw =  gpg_helpers::decrypt_file(&pw_path, gpg_password)?;
     
     if pw.starts_with("otpauth://") {
         let otp = TOTP::from_url_unchecked(&pw).expect("Failed to parse OTP URL.");
@@ -184,7 +183,7 @@ fn extract(name: &Option<String>, config: &VaultConfig) -> Result<String, Inquir
 }
 
 
-fn get_secret_path(name: &Option<String>, config: &VaultConfig) -> Result<PathBuf, InquireError> {
+fn get_secret_path(name: &Option<String>, config: &VaultConfig) -> Result<PathBuf, VaultError> {
     let pw_path: PathBuf;
     if let Some(name) = name {
         pw_path = config.vault.join(name.to_owned() + ".gpg");

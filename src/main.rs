@@ -1,11 +1,10 @@
-#![allow(clippy::needless_return)]
-
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+
 mod gpg_helpers;
 mod ui;
 mod commands;
-
+mod errors;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
