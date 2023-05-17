@@ -9,19 +9,19 @@ use crate::errors::VaultError;
 pub fn pick_password(password_list: Vec<String>) -> Result<String, VaultError> {
     let key = Select::new("Pick a key", password_list)
         .prompt()?;
-    return Ok(key);
+    Ok(key)
 }
 
 pub fn prompt_for_password() -> Result<String, VaultError> {
     let password = Password::new("Password: ")
         .prompt()?;
-    return Ok(password);
+    Ok(password)
 }
 
 pub fn prompt_for_otpauth() -> Result<String, VaultError> {
     let otpauth = Text::new("otpauth: ")
         .prompt()?;
-    return Ok(otpauth);
+    Ok(otpauth)
 }
 
 pub fn maybe_prompt_for_password(ask_password: bool) -> Option<String> {
@@ -31,7 +31,7 @@ pub fn maybe_prompt_for_password(ask_password: bool) -> Option<String> {
                     .prompt()
                     .expect("Failed to read password."));
     } else {
-        return None;
+        None
     }
 }
 
@@ -39,7 +39,7 @@ pub fn prompt_for_filename() -> Result<String, VaultError> {
     let filename = Text::new("Filename: ")
         .with_validator(FilenameValidator{})
         .prompt()?;
-    return Ok(filename);
+    Ok(filename)
 }
 
 
@@ -106,14 +106,14 @@ impl StringValidator for FilenameValidator {
         if !re.is_match(input) {
             return Ok(Validation::Invalid(ErrorMessage::Custom("Filename can only contain alphanumeric characters, spaces, underscores and dashes.".to_string())));
         }
-        return Ok(Validation::Valid);
+        Ok(Validation::Valid)
     }
 }
 
 pub fn pick_key(keys: Vec<KeyIdName>) -> Result<String, VaultError> {
     let key = Select::new("Pick a key", keys)
         .prompt()?;
-    return Ok(key.id);
+    Ok(key.id)
 }
 
 

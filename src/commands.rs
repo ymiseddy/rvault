@@ -49,9 +49,9 @@ pub fn read_id(config: &VaultConfig) -> Result<String, VaultError> {
         }
 
         let id = result["id"].to_string();
-        return Ok(id);
+        Ok(id)
     } else {
-        return Err(VaultError::InitializationError("Failed to parse ID file."));
+        Err(VaultError::InitializationError("Failed to parse ID file."))
     }
 }
 
@@ -60,7 +60,7 @@ fn read_otpauth() -> Result<String, VaultError> {
     if atty::is(atty::Stream::Stdin) {
         // Prompt for otpauth
         let otpauth = ui::prompt_for_otpauth()?;
-        return Ok(otpauth);
+        Ok(otpauth)
     } else {
         // Read from stdin
         let mut otpauth = Vec::new();
@@ -75,7 +75,7 @@ fn read_otpauth() -> Result<String, VaultError> {
                 return Err(VaultError::Other("Failed to parse otpauth."));
             }
         };
-        return Ok(strauth);
+        Ok(strauth)
     }
 }
 
@@ -88,9 +88,9 @@ fn decode_image_file(image_file: &str) -> String {
         panic!("Failed to decode image.");
     }
 
-    return results.into_iter().next()
+    results.into_iter().next()
                         .expect("Failed to decode image")
-                        .expect("Failed to decode image");
+                        .expect("Failed to decode image")
 }
 
 pub fn otp(config: &VaultConfig, share_token: &Option<String>) {

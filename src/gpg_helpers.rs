@@ -42,7 +42,7 @@ pub fn decrypt_file(filename: &PathBuf, password: Option<String>) -> Result<Stri
     }
 
     let message = String::from_utf8(output.stdout).unwrap();
-    return Ok(message);
+    Ok(message)
 }
 
 pub fn get_secret_keys() -> Result<Vec<KeyIdName>, VaultError> {
@@ -99,13 +99,13 @@ pub fn get_secret_keys() -> Result<Vec<KeyIdName>, VaultError> {
         keys.push(current_key);
     } 
 
-    return Ok(keys);
+    Ok(keys)
 }
 
 pub fn get_vault_dir() -> Option<PathBuf> {
     let home_dir = dirs::home_dir()?;
     let vault_dir = home_dir.join(".vault");
-    return Some(vault_dir);
+    Some(vault_dir)
 }
 
 pub fn list_passwords(vault_dir: &PathBuf) -> Vec<String> {
@@ -130,7 +130,7 @@ pub fn list_passwords(vault_dir: &PathBuf) -> Vec<String> {
         }
 
 
-    return keys;
+    keys
 }
 
 pub fn write_password(path: &PathBuf, password: &str) -> Result<(), VaultError> {
@@ -156,7 +156,7 @@ pub fn write_password(path: &PathBuf, password: &str) -> Result<(), VaultError> 
     let mut file = std::fs::File::create(path)?;
     file.write_all(&output.stdout)?;
 
-    return Ok(());
+    Ok(())
 }
 
 
