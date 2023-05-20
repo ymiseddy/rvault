@@ -6,6 +6,7 @@ mod ui;
 mod commands;
 mod errors;
 
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 struct Cli {
@@ -103,7 +104,7 @@ fn main() {
         Err(_) => 
             {
                 // Vault is not initialized -- only valid command is Init
-                
+                // 🧚 
                 // TODO: This whole block feels clunky - Need to figure out a better way.
                 if let Some(command) = &args.command {
                     match command {
